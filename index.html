@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Traveling Salesman DCP</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script src="./index.js"></script>
+	</head>
+	<body>
+		<header>
+			<h1>Traveling Salesman DCP</h1>
+		</header>
+		
+		
+	Options:<br>
+	<div>
+		<input type="radio" id="rnd" name="type" value="rnd" checked>
+		<label for="rnd">Randomized</label><br>
+		<input type="radio" id="non" name="type" value="non">
+		<label for="non">Entered</label><br>
+	</div>
+  
+<label for="quantity">Number of Cities (3 to 15):</label>
+<input type="number" id="quantity" name="quantity" min="3" max="15" value="13">
+<br>
+
+<input type="submit" value='Find Optimal route' onclick="tsp()">
+
+<p id="output">&nbsp;</p>
+
+<label>Input points as x y</label><br>
+<textarea id="input"></textarea>
+<div id="canHolder">
+
+</div>
+
+	</body>
+	<footer>
+	<p style="text-align: center; font-size: 13px;">Created by Nathan Reed</p>
+	</footer>
+	<style>
+		body{
+		background-color: #f2f9ff;
+		margin-right: 13.5em;
+		}
+		header{
+		position:relative;
+		width: calc(100% - 13.5em);
+		height: 3em;
+		left: 13.5em;
+		}
+		header h1{
+		position: absolute;
+		color: #000000;
+		font-size: 40px;
+		margin: 10px;
+		text-shadow: 3px 3px 0px #0060FF;
+		}
+		canvas{
+		border: double;
+		}
+	</style>
+	
+</html>
+

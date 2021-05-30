@@ -1,7 +1,101 @@
-#!/usr/bin/env node
-
-const SCHEDULER_URL = new URL('https://scheduler-v3.distributed.computer/');
 var smallest = {num: Number.MAX_VALUE, string: ""};
+function tsp(){
+	let startTime;
+	let numCities = Number(document.getElementById("quantity").value);
+	let input = document.getElementById("input").value;
+	//let numCities = 10;
+	let array;
+	if(document.getElementById("rnd").checked === true){
+		array = randomize(numCities + 1);
+	}else if(input.length > 0){
+		array = createArray(input);
+		if(array !== null){
+			numCities = array.length - 1;
+		}
+	}
+	
+	if(array !== null){
+		let str = createString(numCities);
+		if(numCities >= 6){
+			let starts = createStarts(str, numCities);
+			$.ajax({
+				type: 'get',            //Request type
+				dataType: 'json',       //Data type - we will use JSON for almost everything 
+				url: '/dcp',   //The server endpoint we are connecting to
+				async: false,
+				data: {
+					array: array,
+					numCities: numCities,
+				},
+				success: function (data) {
+					console.log(data.array);
+					smallest = data.array;
+				},
+				fail: function(error) {
+					// Non-200 return, do something with error
+					console.log(error); 
+				}
+			});
+		}else{
+			distances = createDistances(array, numCities + 1);
+			findSmallest(distances, str, 1);
+		}
+		
+		
+		document.getElementById('output').innerHTML = "The smallest path is " + smallest.string + " with a length of " + smallest.num + " units.";
+		console.log("The smallest path is " + smallest.string + " with a length of " + smallest.num + " units.");
+		createGraph(array, smallest.string);
+	}	
+}
+
+function randomize(size){
+	let i, array = [];
+	for(i = 0; i < size; i++){
+		array[i] = {x: Math.floor(Math.random() * 100) - 49, y: Math.floor(Math.random() * 100) - 49};
+	}
+	return array;
+}
+
+function createGraph(array, string){
+	let holder = document.getElementById("canHolder");
+	holder.removeChild(holder.lastChild);
+	let newCan = document.createElement("canvas");
+	newCan.id = "canvas";
+	newCan.width = 500;
+	newCan.height = 500;
+	holder.appendChild(newCan);
+	
+	console.log(array);
+	console.log(string);
+	
+	let ctx = newCan.getContext("2d");
+	ctx.restore();
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.stroke();
+	ctx.translate(250, 250);
+	ctx.scale(4.5, 4.5);
+	ctx.lineJoin = "round";
+	let i, curr;
+	ctx.font = "10px Consolas ";
+	ctx.moveTo(array[0].x, array[0].y);
+	ctx.arc(array[0].x, array[0].y, .7, 0, 2 * Math.PI);
+	
+	ctx.fillStyle = "red";
+	ctx.fillText('A', array[0].x, array[0].y);
+	for(i = 1; i < array.length; i++){
+		ctx.fillStyle = "black";
+		curr = toNum(string.charAt(i));
+		ctx.lineTo(array[curr].x, array[curr].y);
+		ctx.arc(array[curr].x, array[curr].y, .7, 0, 2 * Math.PI);
+		ctx.fillStyle = "red";
+		ctx.fillText(String.fromCharCode(curr + 'A'.charCodeAt(0)), array[curr].x, array[curr].y);
+	}
+	ctx.lineTo(array[0].x, array[0].y);
+	
+	
+	ctx.stroke();
+}
+
 function calcDistance(posA, posB){
 	return (Math.abs(posA.x - posB.x) + Math.abs(posA.y - posB.y));
 }
@@ -12,14 +106,6 @@ function getDistance(distances, posA, posB){
 
 function toNum(character){
 	return character.charCodeAt(0) - 'A'.charCodeAt(0);
-}
-
-function randomize(size){
-	let i, array = [];
-	for(i = 0; i < size; i++){
-		array[i] = {x: Math.floor(Math.random() * 100) - 49, y: Math.floor(Math.random() * 100) - 49};
-	}
-	return array;
 }
 
 function createDistances(array, size){
@@ -113,132 +199,3 @@ function createArray(input){
 	
 	return array;
 }
-
-async function main() {
-	const compute = require('dcp/compute');
-	const wallet = require('dcp/wallet');
-	
-	function dcp(start){
-		debugger;
-		progress(0);
-		var smallest = {num: Number.MAX_VALUE, string: ""};
-		let distances = JSON.parse('TO_REPLACE');
-		
-		findSmallest(distances, start, 3);
-		
-		function findSmallest(distances, string, start){
-			createPerms(string, start, string.length - 1, distances);
-		}
-		function createPerms(string, start, end, distances){
-			if(start === end){
-				progress();
-				let temp = calcLength(distances, string);
-				//console.log(string + " : " + temp);
-				if(temp < smallest.num){
-					smallest = {num: temp, string: string};
-				}
-				
-			}else{
-				let i;
-				for(i = start; i < end; i++){
-					progress();
-					string = swap(string, string.charAt(start), string.charAt(i));
-					createPerms(string, start + 1, end, distances);
-					string = swap(string, string.charAt(start), string.charAt(i));
-				}
-			}
-		}
-		function calcLength(distances, string){
-			let sum = 0, i;
-			for(i = 0; i < string.length - 1; i++){
-				sum += getDistance(distances, string.charAt(i), string.charAt(i + 1));
-			}
-			return sum;
-		}
-		
-		function getDistance(distances, posA, posB){
-			debugger
-			return distances[toNum(posA)][toNum(posB)];
-		}
-
-		function toNum(character){
-			return character.charCodeAt(0) - 'A'.charCodeAt(0);
-		}
-		
-		function swap(string, pos1, pos2){
-			string = string.replace(pos1, '*');
-			string = string.replace(pos2, pos1);
-			string = string.replace('*', pos2);
-			return string;
-		}
-
-		progress(1);
-		debugger;
-		return smallest;
-	}
-	
-	let numCities = 12;
-	let array = randomize(numCities + 1);
-	distances = createDistances(array, numCities + 1);
-	let str = createString(numCities);
-	let job;
-	if(numCities > 10){
-		let starts = createStarts(str, numCities);
-		let toWorker = dcp.toString().replace('TO_REPLACE', `${JSON.stringify(distances)}`)
-		console.log(starts);
-		
-		job = compute.for(starts, toWorker);
-	
-		const ks = await wallet.get();
-		job.setPaymentAccountKeystore(ks);
-	  
-	  
-		job.on('accepted', () => {
-		console.log(` - Job accepted by scheduler, waiting for results`);
-		console.log(` - Job has id ${job.id}`);
-		startTime = Date.now();
-	  });
-
-		job.on('readystatechange', (arg) => {
-			console.log(`new ready state: ${arg}`);
-		});
-
-		job.on('result', (ev) => {
-			console.log(
-				` - Received result for slice ${ev.sliceNumber} at ${
-					Math.round((Date.now() - startTime) / 100) / 10
-				}s`,
-			);
-			console.log(ev.result);
-		});
-	  
-	  
-		//const results = await job.localExec(2);
-		const results = await job.exec(compute.marketValue);
-		
-		let output = Array.from(results);
-		output.forEach(output => {
-			if(output.num < smallest.num){
-				smallest = output;
-			}
-		});
-		
-		console.log("The smallest path is " + smallest.string + " with a length of " + smallest.num + "units.");
-	
-	}else{
-		findSmallest(distances, str, 1);
-	}
-	
-	smallest = {num: Number.MAX_VALUE, string: ""};
-	let time = Date.now();
-	findSmallest(distances, str, 1);
-	console.log(`Time to complete ${Math.round((Date.now() - time) / 100) / 10}s`);
-	console.log("The smallest path is " + smallest.string + " with a length of " + smallest.num + "units.");
-}
-
-/* Initialize DCP Client and run main() */
-require('dcp-client')
-	.init(SCHEDULER_URL)
-	.then(main)
-	.catch(console.error)
-	.finally(process.exit);
