@@ -8,7 +8,10 @@ npm init
 npm i express  
 
 ## Running
-View Site in browser - localhost:3000  
+node app.js  
+localhost:3000  
+
+
 Choose the number of cities to vist (the origin city is not included)  
 Or input the x y coordinates of the cities in the textbox  
 
